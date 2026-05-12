@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSelector } from 'react-redux';
@@ -22,6 +21,7 @@ export default function FavorisScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchFavoris = async () => {
+    if (!user?.id) return;
     try {
       const data = await favorisService.getFavoris(user.id);
       setFavoris(data);
@@ -44,111 +44,96 @@ export default function FavorisScreen({ navigation }) {
 
   const handleRemove = async (favori) => {
     try {
-      await favorisService.removeFavori(user.id, favori.id);
-      setFavoris((prev) => prev.filter((f) => f.favori_id !== favori.favori_id));
+      await favorisService.removeFavori(user.id, favori.annonce_id);
+      setFavoris((prev) => prev.filter((f) => f.id !== favori.id));
     } catch (error) {
       console.error(error);
     }
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    });
-  };
-
   const renderFavori = ({ item }) => {
-    const category = CATEGORIES.find((c) => c.id === item.categorie);
+    const annonce = item.annonces;
+    const category = CATEGORIES.find((c) => c.id === annonce?.categorie);
+
     return (
       <TouchableOpacity
         style={styles.card}
-        onPress={() => navigation.navigate('AnnonceDetail', { annonce: item })}
+        onPress={() => navigation.navigate('AnnonceDetail', { annonce })}
         activeOpacity={0.85}
       >
-        {/* Badge catégorie */}
-        <View style={styles.cardHeader}>
-          <View style={[styles.badge, { backgroundColor: category?.color + '22' }]}>
-            <Text style={[styles.badgeText, { color: category?.color }]}>
-              {category?.icon} {category?.label}
+        <View style={styles.cardContent}>
+          <View style={[styles.categoryIcon, { backgroundColor: category?.color + '22' }]}>
+            <Text style={styles.categoryEmoji}>{category?.icon || '📦'}</Text>
+          </View>
+
+          <View style={styles.infos}>
+            <View style={[styles.badge, { backgroundColor: category?.color + '22' }]}>
+              <Text style={[styles.badgeText, { color: category?.color }]}>
+                {category?.label}
+              </Text>
+            </View>
+            <Text style={styles.titre} numberOfLines={2}>
+              {annonce?.titre}
+            </Text>
+            {annonce?.prix ? (
+              <Text style={styles.prix}>{annonce.prix} FCFA</Text>
+            ) : (
+              <Text style={styles.gratuit}>Gratuit</Text>
+            )}
+            <Text style={styles.vendeur}>
+              👤 {annonce?.profiles?.prenom} {annonce?.profiles?.nom}
             </Text>
           </View>
+
           <TouchableOpacity
-            style={styles.deleteBtn}
+            style={styles.heartButton}
             onPress={() => handleRemove(item)}
           >
-            <Ionicons name="heart" size={18} color={COLORS.error} />
+            <Ionicons name="heart" size={24} color={COLORS.error} />
           </TouchableOpacity>
-        </View>
-
-        {/* Image */}
-        {item.images && item.images.length > 0 ? (
-          <Image
-            source={{ uri: item.images[0] }}
-            style={styles.image}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={styles.imageContainer}>
-            <Text style={styles.imagePlaceholder}>{category?.icon || '📦'}</Text>
-          </View>
-        )}
-
-        {/* Contenu */}
-        <View style={styles.content}>
-          <Text style={styles.titre} numberOfLines={2}>
-            {item.titre}
-          </Text>
-          {item.prix ? (
-            <Text style={styles.prix}>{item.prix} FCFA</Text>
-          ) : (
-            <Text style={styles.gratuit}>Gratuit</Text>
-          )}
-          <Text style={styles.date}>
-            {formatDate(item.created_at)}
-          </Text>
         </View>
       </TouchableOpacity>
     );
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-        <Text style={styles.loadingText}>Chargement des favoris...</Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color={COLORS.black} />
+        </TouchableOpacity>
         <Text style={styles.title}>Mes favoris</Text>
+        <View style={{ width: 24 }} />
       </View>
 
-      {favoris.length === 0 ? (
+      {loading ? (
+        <ActivityIndicator
+          size="large"
+          color={COLORS.primary}
+          style={{ marginTop: 40 }}
+        />
+      ) : favoris.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Ionicons name="heart-outline" size={64} color={COLORS.lightGray} />
+          <Ionicons name="heart-outline" size={70} color={COLORS.lightGray} />
           <Text style={styles.emptyText}>Aucun favori pour le moment</Text>
-          <Text style={styles.emptySubtext}>
-            Ajoutez des annonces à vos favoris pour les retrouver ici
+          <Text style={styles.emptySubText}>
+            Appuie sur ❤️ sur une annonce pour la sauvegarder
           </Text>
+          <TouchableOpacity
+            style={styles.emptyButton}
+            onPress={() => navigation.navigate('Annonces')}
+          >
+            <Text style={styles.emptyButtonText}>Explorer les annonces</Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <FlatList
           data={favoris}
+          keyExtractor={(item) => item.id}
           renderItem={renderFavori}
-          keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              colors={[COLORS.primary]}
-            />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
         />
       )}
@@ -162,53 +147,25 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: 55,
     paddingBottom: 15,
     backgroundColor: COLORS.white,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: COLORS.black,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: COLORS.gray,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
-  },
-  emptyText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: COLORS.black,
-    marginTop: 16,
-    textAlign: 'center',
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: COLORS.gray,
-    marginTop: 8,
-    textAlign: 'center',
-    lineHeight: 20,
   },
   list: {
     padding: 16,
   },
   card: {
     backgroundColor: COLORS.white,
-    borderRadius: 12,
+    borderRadius: 14,
     marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -217,60 +174,85 @@ const styles = StyleSheet.create({
     elevation: 3,
     overflow: 'hidden',
   },
-  cardHeader: {
+  cardContent: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 12,
+    padding: 14,
+    gap: 12,
   },
-  badge: {
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  deleteBtn: {
-    padding: 4,
-  },
-  image: {
-    width: '100%',
-    height: 120,
-  },
-  imageContainer: {
-    height: 120,
+  categoryIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.lightGray + '22',
   },
-  imagePlaceholder: {
-    fontSize: 32,
+  categoryEmoji: {
+    fontSize: 28,
   },
-  content: {
-    padding: 12,
+  infos: {
+    flex: 1,
+    gap: 4,
+  },
+  badge: {
+    alignSelf: 'flex-start',
+    borderRadius: 20,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  badgeText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
   titre: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: 'bold',
     color: COLORS.black,
-    marginBottom: 4,
   },
   prix: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     color: COLORS.primary,
-    marginBottom: 4,
   },
   gratuit: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     color: COLORS.success,
-    marginBottom: 4,
   },
-  date: {
+  vendeur: {
     fontSize: 12,
     color: COLORS.gray,
+  },
+  heartButton: {
+    padding: 8,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 30,
+    gap: 10,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: COLORS.gray,
+  },
+  emptySubText: {
+    fontSize: 14,
+    color: COLORS.lightGray,
+    textAlign: 'center',
+  },
+  emptyButton: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginTop: 8,
+  },
+  emptyButtonText: {
+    color: COLORS.white,
+    fontWeight: 'bold',
+    fontSize: 15,
   },
 });

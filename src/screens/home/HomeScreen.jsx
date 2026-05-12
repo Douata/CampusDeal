@@ -16,6 +16,7 @@ import { annoncesService } from '../../services/annoncesService';
 import { CATEGORIES } from '../../constants/categories';
 import { COLORS } from '../../constants/colors';
 import AnnonceCard from '../../components/annonces/AnnonceCard';
+import Logo from '../../components/common/Logo';
 
 export default function HomeScreen({ navigation }) {
   const dispatch = useDispatch();
@@ -55,17 +56,16 @@ export default function HomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>Bonjour 👋</Text>
-          <Text style={styles.title}>CampusDeal</Text>
-        </View>
-        <TouchableOpacity style={styles.searchButton}
-          onPress={() => navigation.navigate('Annonces')}
-        >
-          <Ionicons name="search" size={22} color={COLORS.primary} />
-        </TouchableOpacity>
-      </View>
+    <View style={styles.header}>
+      <Logo size={38} showText={false} />
+      <Text style={styles.title}>CampusDeal</Text>
+      <TouchableOpacity
+        style={styles.searchButton}
+        onPress={() => navigation.navigate('Annonces')}
+      >
+        <Ionicons name="search" size={22} color={COLORS.primary} />
+      </TouchableOpacity>
+    </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -75,7 +75,7 @@ export default function HomeScreen({ navigation }) {
       >
         {/* Banner */}
         <View style={styles.banner}>
-          <Text style={styles.bannerText}>🎓 Le marché de l'INPHB</Text>
+          <Text style={styles.bannerText}> Le marché de l'INPHB</Text>
           <Text style={styles.bannerSubText}>
             Achète, vends, échange avec tes camarades
           </Text>

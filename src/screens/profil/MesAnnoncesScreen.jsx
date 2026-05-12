@@ -24,6 +24,7 @@ export default function MesAnnoncesScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchMesAnnonces = async () => {
+    if (!user?.id) return;
     try {
       const data = await annoncesService.getMesAnnonces(user.id);
       setAnnonces(data);
@@ -135,7 +136,9 @@ export default function MesAnnoncesScreen({ navigation }) {
           <Ionicons name="arrow-back" size={24} color={COLORS.black} />
         </TouchableOpacity>
         <Text style={styles.title}>Mes annonces</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Publier')}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Tabs', { screen: 'Publier' })}
+        >
           <Ionicons name="add-circle-outline" size={26} color={COLORS.primary} />
         </TouchableOpacity>
       </View>
@@ -152,7 +155,7 @@ export default function MesAnnoncesScreen({ navigation }) {
           <Text style={styles.emptyText}>Tu n'as pas encore d'annonces</Text>
           <TouchableOpacity
             style={styles.emptyButton}
-            onPress={() => navigation.navigate('Publier')}
+            onPress={() => navigation.navigate('Tabs', { screen: 'Publier' })}
           >
             <Text style={styles.emptyButtonText}>Publier une annonce</Text>
           </TouchableOpacity>

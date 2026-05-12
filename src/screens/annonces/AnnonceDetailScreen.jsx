@@ -15,9 +15,9 @@ import { useSelector, useDispatch } from 'react-redux';
 import { removeAnnonce } from '../../store/slices/annoncesSlice';
 import { annoncesService } from '../../services/annoncesService';
 import { profileService } from '../../services/profileService';
+import { favorisService } from '../../services/favorisService';
 import { CATEGORIES } from '../../constants/categories';
 import { COLORS } from '../../constants/colors';
-import { favorisService } from '../../services/favorisService';
 
 export default function AnnonceDetailScreen({ route, navigation }) {
   const { annonce } = route.params;
@@ -26,39 +26,49 @@ export default function AnnonceDetailScreen({ route, navigation }) {
   const [loading, setLoading] = useState(false);
   const [currentImage, setCurrentImage] = useState(0);
   const [vendeurProfile, setVendeurProfile] = useState(null);
+  const [isFavori, setIsFavori] = useState(false);
+  const [favoriLoading, setFavoriLoading] = useState(false);
 
   const category = CATEGORIES.find((c) => c.id === annonce.categorie);
   const isOwner = user?.id === annonce.user_id;
 
-  const [isFavori, setIsFavori] = useState(false);
-  const [favoriLoading, setFavoriLoading] = useState(false);
-
   useEffect(() => {
-  loadVendeurProfile();
-  checkFavori();
-}, []);
+    loadVendeurProfile();
+    checkFavori();
+  }, []);
 
-const checkFavori = async () => {
-  const result = await favorisService.isFavori(user.id, annonce.id);
-  setIsFavori(result);
-};
-
-const handleFavori = async () => {
-  try {
-    setFavoriLoading(true);
-    if (isFavori) {
-      await favorisService.removeFavori(user.id, annonce.id);
-      setIsFavori(false);
-    } else {
-      await favorisService.addFavori(user.id, annonce.id);
-      setIsFavori(true);
+  const loadVendeurProfile = async () => {
+    try {
+      const profile = await profileService.getProfile(annonce.user_id);
+      setVendeurProfile(profile);
+    } catch (error) {
+      console.error(error);
     }
-  } catch (error) {
-    console.error(error);
-  } finally {
-    setFavoriLoading(false);
-  }
-};
+  };
+
+  const checkFavori = async () => {
+    if (!user?.id || !annonce?.id) return;
+    const result = await favorisService.isFavori(user.id, annonce.id);
+    setIsFavori(result);
+  };
+
+  const handleFavori = async () => {
+    if (!user?.id || !annonce?.id) return;
+    try {
+      setFavoriLoading(true);
+      if (isFavori) {
+        await favorisService.removeFavori(user.id, annonce.id);
+        setIsFavori(false);
+      } else {
+        await favorisService.addFavori(user.id, annonce.id);
+        setIsFavori(true);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setFavoriLoading(false);
+    }
+  };
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('fr-FR', {
@@ -70,7 +80,7 @@ const handleFavori = async () => {
 
   const handleCall = () => {
     if (!vendeurProfile?.telephone) {
-      Alert.alert('Info', 'Ce vendeur n\'a pas renseigné de numéro');
+      Alert.alert('Info', "Ce vendeur n'a pas renseigné de numéro");
       return;
     }
     const phone = `+225${vendeurProfile.telephone.replace(/\s/g, '')}`;
@@ -79,14 +89,14 @@ const handleFavori = async () => {
 
   const handleWhatsApp = () => {
     if (!vendeurProfile?.telephone) {
-      Alert.alert('Info', 'Ce vendeur n\'a pas renseigné de numéro');
+      Alert.alert('Info', "Ce vendeur n'a pas renseigné de numéro");
       return;
     }
     const phone = `225${vendeurProfile.telephone.replace(/\s/g, '')}`;
     const message = `Bonjour, je suis intéressé par ton annonce : "${annonce.titre}"`;
     const url = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(message)}`;
     Linking.openURL(url).catch(() => {
-      Alert.alert('Erreur', 'WhatsApp n\'est pas installé sur ce téléphone');
+      Alert.alert('Erreur', "WhatsApp n'est pas installé sur ce téléphone");
     });
   };
 
@@ -101,7 +111,7 @@ const handleFavori = async () => {
 
   const handleDelete = () => {
     Alert.alert(
-      'Supprimer l\'annonce',
+      "Supprimer l'annonce",
       'Es-tu sûr de vouloir supprimer cette annonce ?',
       [
         { text: 'Annuler', style: 'cancel' },
@@ -137,7 +147,6 @@ const handleFavori = async () => {
         </TouchableOpacity>
 
         <View style={{ flexDirection: 'row', gap: 10 }}>
-          {/* Bouton favori — visible par tous */}
           {!isOwner && (
             <TouchableOpacity
               style={styles.headerButton}
@@ -151,8 +160,6 @@ const handleFavori = async () => {
               />
             </TouchableOpacity>
           )}
-
-          {/* Bouton supprimer — visible uniquement par le propriétaire */}
           {isOwner && (
             <TouchableOpacity
               style={styles.headerButton}
@@ -258,7 +265,6 @@ const handleFavori = async () => {
           {/* Boutons contact */}
           {!isOwner && (
             <View style={styles.contactButtons}>
-              {/* Appeler */}
               <TouchableOpacity
                 style={[styles.contactBtn, { backgroundColor: COLORS.success }]}
                 onPress={handleCall}
@@ -267,7 +273,6 @@ const handleFavori = async () => {
                 <Text style={styles.contactBtnText}>Appeler</Text>
               </TouchableOpacity>
 
-              {/* WhatsApp */}
               <TouchableOpacity
                 style={[styles.contactBtn, { backgroundColor: '#25D366' }]}
                 onPress={handleWhatsApp}
@@ -276,7 +281,6 @@ const handleFavori = async () => {
                 <Text style={styles.contactBtnText}>WhatsApp</Text>
               </TouchableOpacity>
 
-              {/* Message interne */}
               <TouchableOpacity
                 style={[styles.contactBtn, { backgroundColor: COLORS.primary }]}
                 onPress={handleMessage}

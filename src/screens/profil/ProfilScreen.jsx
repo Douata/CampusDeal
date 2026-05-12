@@ -81,7 +81,7 @@ export default function ProfilScreen({ navigation }) {
       icon: 'help-circle-outline',
       label: 'Aide & Support',
       color: COLORS.gray,
-      onPress: () => {},
+      onPress: () => navigation.navigate('Aide'),
     },
   ];
 

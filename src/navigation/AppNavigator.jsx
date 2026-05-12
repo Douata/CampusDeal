@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUser, setSession } from '../store/slices/authSlice';
@@ -10,10 +10,11 @@ import AnnonceDetailScreen from '../screens/annonces/AnnonceDetailScreen';
 import ConversationScreen from '../screens/messages/ConversationScreen';
 import EditProfilScreen from '../screens/profil/EditProfilScreen';
 import ChangePasswordScreen from '../screens/profil/ChangePasswordScreen';
-import { View, ActivityIndicator } from 'react-native';
-import { COLORS } from '../constants/colors';
 import MesAnnoncesScreen from '../screens/profil/MesAnnoncesScreen';
 import FavorisScreen from '../screens/profil/FavorisScreen';
+import AideScreen from '../screens/profil/AideScreen';
+import { View, ActivityIndicator } from 'react-native';
+import { COLORS } from '../constants/colors';
 
 const Stack = createNativeStackNavigator();
 
@@ -27,6 +28,7 @@ function MainNavigator() {
       <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
       <Stack.Screen name="MesAnnonces" component={MesAnnoncesScreen} />
       <Stack.Screen name="Favoris" component={FavorisScreen} />
+      <Stack.Screen name="Aide" component={AideScreen} />
     </Stack.Navigator>
   );
 }
@@ -34,14 +36,24 @@ function MainNavigator() {
 export default function AppNavigator() {
   const dispatch = useDispatch();
   const { user, loading } = useSelector((state) => state.auth);
+  const [initializing, setInitializing] = useState(true);
 
   useEffect(() => {
-    authService.getSession().then((session) => {
-      if (session) {
-        dispatch(setSession(session));
-        dispatch(setUser(session.user));
+    const initAuth = async () => {
+      try {
+        const session = await authService.getSession();
+        if (session) {
+          dispatch(setSession(session));
+          dispatch(setUser(session.user));
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setInitializing(false);
       }
-    });
+    };
+
+    initAuth();
 
     const { data: listener } = authService.onAuthStateChange(
       (event, session) => {
@@ -58,7 +70,7 @@ export default function AppNavigator() {
     return () => listener?.subscription?.unsubscribe();
   }, []);
 
-  if (loading) {
+  if (initializing || loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color={COLORS.primary} />
