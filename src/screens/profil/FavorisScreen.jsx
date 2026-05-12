@@ -13,6 +13,7 @@ import { useSelector } from 'react-redux';
 import { favorisService } from '../../services/favorisService';
 import { COLORS } from '../../constants/colors';
 import { CATEGORIES } from '../../constants/categories';
+import EmptyState from '../../components/common/EmptyState';
 
 export default function FavorisScreen({ navigation }) {
   const { user } = useSelector((state) => state.auth);
@@ -113,19 +114,13 @@ export default function FavorisScreen({ navigation }) {
           style={{ marginTop: 40 }}
         />
       ) : favoris.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Ionicons name="heart-outline" size={70} color={COLORS.lightGray} />
-          <Text style={styles.emptyText}>Aucun favori pour le moment</Text>
-          <Text style={styles.emptySubText}>
-            Appuie sur ❤️ sur une annonce pour la sauvegarder
-          </Text>
-          <TouchableOpacity
-            style={styles.emptyButton}
-            onPress={() => navigation.navigate('Annonces')}
-          >
-            <Text style={styles.emptyButtonText}>Explorer les annonces</Text>
-          </TouchableOpacity>
-        </View>
+        <EmptyState
+          icon="heart-outline"
+          title="Aucun favori pour le moment"
+          subtitle="Appuie sur ❤️ sur une annonce pour la sauvegarder ici"
+          buttonText="Explorer les annonces"
+          onButtonPress={() => navigation.navigate('Tabs', { screen: 'Annonces' })}
+        />
       ) : (
         <FlatList
           data={favoris}
@@ -225,34 +220,5 @@ const styles = StyleSheet.create({
   },
   heartButton: {
     padding: 8,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 30,
-    gap: 10,
-  },
-  emptyText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: COLORS.gray,
-  },
-  emptySubText: {
-    fontSize: 14,
-    color: COLORS.lightGray,
-    textAlign: 'center',
-  },
-  emptyButton: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 10,
-    marginTop: 8,
-  },
-  emptyButtonText: {
-    color: COLORS.white,
-    fontWeight: 'bold',
-    fontSize: 15,
   },
 });

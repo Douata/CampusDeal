@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSelector } from 'react-redux';
 import { messagesService } from '../../services/messagesService';
 import { COLORS } from '../../constants/colors';
+import EmptyState from '../../components/common/EmptyState';
 
 export default function MessagesScreen({ navigation }) {
   const { user } = useSelector((state) => state.auth);
@@ -66,7 +67,6 @@ export default function MessagesScreen({ navigation }) {
         })
       }
     >
-      {/* Avatar */}
       <View style={styles.avatar}>
         <Text style={styles.avatarText}>
           {item.other_user?.prenom?.[0]}
@@ -74,7 +74,6 @@ export default function MessagesScreen({ navigation }) {
         </Text>
       </View>
 
-      {/* Contenu */}
       <View style={styles.conversationContent}>
         <View style={styles.conversationHeader}>
           <Text style={styles.userName}>
@@ -92,7 +91,6 @@ export default function MessagesScreen({ navigation }) {
         </Text>
       </View>
 
-      {/* Badge non lu */}
       {item.unread > 0 && (
         <View style={styles.unreadBadge}>
           <Text style={styles.unreadText}>{item.unread}</Text>
@@ -114,13 +112,11 @@ export default function MessagesScreen({ navigation }) {
           style={{ marginTop: 40 }}
         />
       ) : conversations.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Ionicons name="chatbubbles-outline" size={70} color={COLORS.lightGray} />
-          <Text style={styles.emptyText}>Aucun message pour le moment</Text>
-          <Text style={styles.emptySubText}>
-            Contacte un vendeur depuis une annonce
-          </Text>
-        </View>
+        <EmptyState
+          icon="chatbubbles-outline"
+          title="Aucun message pour le moment"
+          subtitle="Contacte un vendeur depuis une annonce pour démarrer une conversation"
+        />
       ) : (
         <FlatList
           data={conversations}
@@ -217,20 +213,5 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 11,
     fontWeight: 'bold',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 10,
-  },
-  emptyText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: COLORS.gray,
-  },
-  emptySubText: {
-    fontSize: 14,
-    color: COLORS.lightGray,
   },
 });

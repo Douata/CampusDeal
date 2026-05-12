@@ -9,9 +9,11 @@ import {
   Alert,
   ActivityIndicator,
   Linking,
+  Share,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSelector, useDispatch } from 'react-redux';
+import ImageViewing from 'react-native-image-viewing';
 import { removeAnnonce } from '../../store/slices/annoncesSlice';
 import { annoncesService } from '../../services/annoncesService';
 import { profileService } from '../../services/profileService';
@@ -28,6 +30,8 @@ export default function AnnonceDetailScreen({ route, navigation }) {
   const [vendeurProfile, setVendeurProfile] = useState(null);
   const [isFavori, setIsFavori] = useState(false);
   const [favoriLoading, setFavoriLoading] = useState(false);
+  const [imageViewVisible, setImageViewVisible] = useState(false);
+  const [imageViewIndex, setImageViewIndex] = useState(0);
 
   const category = CATEGORIES.find((c) => c.id === annonce.categorie);
   const isOwner = user?.id === annonce.user_id;
@@ -70,12 +74,31 @@ export default function AnnonceDetailScreen({ route, navigation }) {
     }
   };
 
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        message: `🎓 CampusDeal — ${annonce.titre}\n💰 ${annonce.prix ? annonce.prix + ' FCFA' : 'Gratuit'}\n📝 ${annonce.description}\n\nRetrouve cette annonce sur CampusDeal !`,
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
+    const date = new Date(dateString);
+    const heure = date.toLocaleTimeString('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    const now = new Date();
+    const diff = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+    if (diff === 0) return `Aujourd'hui à ${heure}`;
+    if (diff === 1) return `Hier à ${heure}`;
+    return date.toLocaleDateString('fr-FR', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
-    });
+    }) + ` à ${heure}`;
   };
 
   const handleCall = () => {
@@ -147,6 +170,15 @@ export default function AnnonceDetailScreen({ route, navigation }) {
         </TouchableOpacity>
 
         <View style={{ flexDirection: 'row', gap: 10 }}>
+          {/* Bouton partager */}
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={handleShare}
+          >
+            <Ionicons name="share-outline" size={22} color={COLORS.black} />
+          </TouchableOpacity>
+
+          {/* Bouton favori */}
           {!isOwner && (
             <TouchableOpacity
               style={styles.headerButton}
@@ -160,6 +192,8 @@ export default function AnnonceDetailScreen({ route, navigation }) {
               />
             </TouchableOpacity>
           )}
+
+          {/* Bouton supprimer */}
           {isOwner && (
             <TouchableOpacity
               style={styles.headerButton}
@@ -180,10 +214,23 @@ export default function AnnonceDetailScreen({ route, navigation }) {
         {/* Images */}
         {annonce.images && annonce.images.length > 0 ? (
           <View>
-            <Image
-              source={{ uri: annonce.images[currentImage] }}
-              style={styles.image}
-            />
+            <TouchableOpacity
+              onPress={() => {
+                setImageViewIndex(currentImage);
+                setImageViewVisible(true);
+              }}
+              activeOpacity={0.95}
+            >
+              <Image
+                source={{ uri: annonce.images[currentImage] }}
+                style={styles.image}
+              />
+              <View style={styles.zoomIndicator}>
+                <Ionicons name="expand-outline" size={14} color={COLORS.white} />
+                <Text style={styles.zoomText}>Appuyer pour agrandir</Text>
+              </View>
+            </TouchableOpacity>
+
             {annonce.images.length > 1 && (
               <View style={styles.imageDots}>
                 {annonce.images.map((_, index) => (
@@ -198,6 +245,16 @@ export default function AnnonceDetailScreen({ route, navigation }) {
                 ))}
               </View>
             )}
+
+            {/* Visionneuse plein écran */}
+            <ImageViewing
+              images={annonce.images.map((uri) => ({ uri }))}
+              imageIndex={imageViewIndex}
+              visible={imageViewVisible}
+              onRequestClose={() => setImageViewVisible(false)}
+              swipeToCloseEnabled={true}
+              doubleTapToZoomEnabled={true}
+            />
           </View>
         ) : (
           <View
@@ -259,7 +316,7 @@ export default function AnnonceDetailScreen({ route, navigation }) {
           </View>
 
           <Text style={styles.dateText}>
-            Publié le {formatDate(annonce.created_at)}
+            🕐 {formatDate(annonce.created_at)}
           </Text>
 
           {/* Boutons contact */}
@@ -335,6 +392,22 @@ const styles = StyleSheet.create({
   },
   placeholderIcon: {
     fontSize: 60,
+  },
+  zoomIndicator: {
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  zoomText: {
+    color: COLORS.white,
+    fontSize: 11,
   },
   imageDots: {
     flexDirection: 'row',

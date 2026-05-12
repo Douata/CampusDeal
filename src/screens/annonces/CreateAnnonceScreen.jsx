@@ -42,7 +42,7 @@ export default function CreateAnnonceScreen({ navigation }) {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [4, 3],
+      aspect: [4, 4],
       quality: 0.8,
     });
 
@@ -80,6 +80,8 @@ export default function CreateAnnonceScreen({ navigation }) {
     });
 
       dispatch(addAnnonce(newAnnonce));
+      setForm({ titre: '', description: '', prix: '', categorie: '' });
+      setImages([]);
       Alert.alert('Succès !', 'Ton annonce a été publiée', [
         { text: 'OK', onPress: () => navigation.navigate('Home') },
       ]);

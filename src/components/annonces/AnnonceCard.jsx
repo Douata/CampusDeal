@@ -13,13 +13,23 @@ export default function AnnonceCard({ annonce, onPress }) {
   const category = CATEGORIES.find((c) => c.id === annonce.categorie);
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diff = Math.floor((now - date) / (1000 * 60 * 60 * 24));
-    if (diff === 0) return "Aujourd'hui";
-    if (diff === 1) return 'Hier';
-    return `Il y a ${diff} jours`;
-  };
+  const date = new Date(dateString);
+  const now = new Date();
+  const diff = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+  
+  const heure = date.toLocaleTimeString('fr-FR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  if (diff === 0) return `Aujourd'hui à ${heure}`;
+  if (diff === 1) return `Hier à ${heure}`;
+  if (diff < 7) return `Il y a ${diff} jours à ${heure}`;
+  return date.toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'short',
+  }) + ` à ${heure}`;
+};
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.85}>

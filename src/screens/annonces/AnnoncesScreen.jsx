@@ -14,6 +14,7 @@ import { setSelectedCategory } from '../../store/slices/annoncesSlice';
 import { COLORS } from '../../constants/colors';
 import { CATEGORIES } from '../../constants/categories';
 import AnnonceCard from '../../components/annonces/AnnonceCard';
+import EmptyState from '../../components/common/EmptyState';
 
 export default function AnnoncesScreen({ navigation }) {
   const dispatch = useDispatch();
@@ -107,10 +108,11 @@ export default function AnnoncesScreen({ navigation }) {
           style={{ marginTop: 40 }}
         />
       ) : filteredBySearch.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyIcon}>🔍</Text>
-          <Text style={styles.emptyText}>Aucune annonce trouvée</Text>
-        </View>
+        <EmptyState
+          icon="search-outline"
+          title="Aucune annonce trouvée"
+          subtitle="Essaie avec d'autres mots clés ou change de catégorie"
+        />
       ) : (
         <FlatList
           data={filteredBySearch}
@@ -198,17 +200,5 @@ const styles = StyleSheet.create({
   list: {
     paddingHorizontal: 16,
     paddingBottom: 20,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    paddingVertical: 60,
-  },
-  emptyIcon: {
-    fontSize: 50,
-    marginBottom: 12,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: COLORS.gray,
   },
 });

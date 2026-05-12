@@ -15,6 +15,7 @@ import { removeAnnonce } from '../../store/slices/annoncesSlice';
 import { annoncesService } from '../../services/annoncesService';
 import { COLORS } from '../../constants/colors';
 import { CATEGORIES } from '../../constants/categories';
+import EmptyState from '../../components/common/EmptyState';
 
 export default function MesAnnoncesScreen({ navigation }) {
   const { user } = useSelector((state) => state.auth);
@@ -84,7 +85,6 @@ export default function MesAnnoncesScreen({ navigation }) {
         onPress={() => navigation.navigate('AnnonceDetail', { annonce: item })}
         activeOpacity={0.85}
       >
-        {/* Badge catégorie */}
         <View style={styles.cardHeader}>
           <View style={[styles.badge, { backgroundColor: category?.color + '22' }]}>
             <Text style={[styles.badgeText, { color: category?.color }]}>
@@ -99,17 +99,14 @@ export default function MesAnnoncesScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* Titre */}
         <Text style={styles.titre} numberOfLines={2}>{item.titre}</Text>
 
-        {/* Prix */}
         {item.prix ? (
           <Text style={styles.prix}>{item.prix} FCFA</Text>
         ) : (
           <Text style={styles.gratuit}>Gratuit</Text>
         )}
 
-        {/* Footer */}
         <View style={styles.cardFooter}>
           <View style={[
             styles.statusBadge,
@@ -130,7 +127,6 @@ export default function MesAnnoncesScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={COLORS.black} />
@@ -150,16 +146,13 @@ export default function MesAnnoncesScreen({ navigation }) {
           style={{ marginTop: 40 }}
         />
       ) : annonces.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyIcon}>📭</Text>
-          <Text style={styles.emptyText}>Tu n'as pas encore d'annonces</Text>
-          <TouchableOpacity
-            style={styles.emptyButton}
-            onPress={() => navigation.navigate('Tabs', { screen: 'Publier' })}
-          >
-            <Text style={styles.emptyButtonText}>Publier une annonce</Text>
-          </TouchableOpacity>
-        </View>
+        <EmptyState
+          emoji="📭"
+          title="Tu n'as pas encore d'annonces"
+          subtitle="Publie ta première annonce et touche toute la communauté INPHB !"
+          buttonText="Publier une annonce"
+          onButtonPress={() => navigation.navigate('Tabs', { screen: 'Publier' })}
+        />
       ) : (
         <FlatList
           data={annonces}
@@ -261,30 +254,5 @@ const styles = StyleSheet.create({
   date: {
     fontSize: 12,
     color: COLORS.gray,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 12,
-  },
-  emptyIcon: {
-    fontSize: 60,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: COLORS.gray,
-  },
-  emptyButton: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 10,
-    marginTop: 8,
-  },
-  emptyButtonText: {
-    color: COLORS.white,
-    fontWeight: 'bold',
-    fontSize: 15,
   },
 });

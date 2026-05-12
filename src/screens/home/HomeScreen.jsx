@@ -16,6 +16,7 @@ import { annoncesService } from '../../services/annoncesService';
 import { CATEGORIES } from '../../constants/categories';
 import { COLORS } from '../../constants/colors';
 import AnnonceCard from '../../components/annonces/AnnonceCard';
+import EmptyState from '../../components/common/EmptyState';
 import Logo from '../../components/common/Logo';
 
 export default function HomeScreen({ navigation }) {
@@ -56,16 +57,18 @@ export default function HomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
       {/* Header */}
-    <View style={styles.header}>
-      <Logo size={38} showText={false} />
-      <Text style={styles.title}>CampusDeal</Text>
-      <TouchableOpacity
-        style={styles.searchButton}
-        onPress={() => navigation.navigate('Annonces')}
-      >
-        <Ionicons name="search" size={22} color={COLORS.primary} />
-      </TouchableOpacity>
-    </View>
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <Logo size={38} showText={false} />
+          <Text style={styles.title}>CampusDeal</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.searchButton}
+          onPress={() => navigation.navigate('Annonces')}
+        >
+          <Ionicons name="search" size={22} color={COLORS.primary} />
+        </TouchableOpacity>
+      </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -132,16 +135,13 @@ export default function HomeScreen({ navigation }) {
             style={{ marginTop: 40 }}
           />
         ) : filteredAnnonces.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>📭</Text>
-            <Text style={styles.emptyText}>Aucune annonce pour le moment</Text>
-            <TouchableOpacity
-              style={styles.emptyButton}
-              onPress={() => navigation.navigate('Publier')}
-            >
-              <Text style={styles.emptyButtonText}>Publier une annonce</Text>
-            </TouchableOpacity>
-          </View>
+          <EmptyState
+            emoji="📭"
+            title="Aucune annonce pour le moment"
+            subtitle="Sois le premier à publier une annonce sur CampusDeal !"
+            buttonText="Publier une annonce"
+            onButtonPress={() => navigation.navigate('Tabs', { screen: 'Publier' })}
+          />
         ) : (
           <FlatList
             data={filteredAnnonces}
@@ -177,12 +177,13 @@ const styles = StyleSheet.create({
     paddingBottom: 15,
     backgroundColor: COLORS.white,
   },
-  greeting: {
-    fontSize: 14,
-    color: COLORS.gray,
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
     color: COLORS.primary,
   },
@@ -256,29 +257,5 @@ const styles = StyleSheet.create({
   annoncesList: {
     paddingHorizontal: 16,
     paddingBottom: 20,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    paddingVertical: 60,
-  },
-  emptyIcon: {
-    fontSize: 50,
-    marginBottom: 12,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: COLORS.gray,
-    marginBottom: 20,
-  },
-  emptyButton: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 10,
-  },
-  emptyButtonText: {
-    color: COLORS.white,
-    fontWeight: 'bold',
-    fontSize: 15,
   },
 });
