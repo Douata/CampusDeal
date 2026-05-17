@@ -435,12 +435,6 @@ Les contributions sont bienvenues ! Pour contribuer :
 
 ---
 
-## 📄 License
-
-Ce projet est sous license **MIT**. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
-
----
-
 ## 📞 Support
 
 Pour toute question ou problème :
@@ -453,7 +447,7 @@ Pour toute question ou problème :
 
 ## 🙌 Crédits
 
-Créé par les étudiants de l'INPHB avec ❤️
+Créé par un étudiants de l'INPHB avec ❤️
 
 **Technologies** : React Native, Expo, Supabase, Redux
 **Design** : UI/UX moderne et intuitif
