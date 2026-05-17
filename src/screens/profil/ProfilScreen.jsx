@@ -7,9 +7,11 @@ import {
   Alert,
   ScrollView,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
+import * as ImagePicker from 'expo-image-picker';
 import { logout } from '../../store/slices/authSlice';
 import { authService } from '../../services/authService';
 import { profileService } from '../../services/profileService';
@@ -20,6 +22,7 @@ export default function ProfilScreen({ navigation }) {
   const { user } = useSelector((state) => state.auth);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [avatarLoading, setAvatarLoading] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -35,6 +38,29 @@ export default function ProfilScreen({ navigation }) {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePickAvatar = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: 'images',
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      try {
+        setAvatarLoading(true);
+        const uri = result.assets[0].uri;
+        const avatarUrl = await profileService.uploadAvatar(uri, user.id);
+        await profileService.updateProfile(user.id, { avatar_url: avatarUrl });
+        setProfile((prev) => ({ ...prev, avatar_url: avatarUrl }));
+      } catch (error) {
+        Alert.alert('Erreur', error.message);
+      } finally {
+        setAvatarLoading(false);
+      }
     }
   };
 
@@ -101,11 +127,33 @@ export default function ProfilScreen({ navigation }) {
 
       {/* Avatar & infos */}
       <View style={styles.profileCard}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {profile?.prenom?.[0]}{profile?.nom?.[0]}
-          </Text>
-        </View>
+        {/* Avatar avec bouton modifier */}
+        <TouchableOpacity
+          style={styles.avatarContainer}
+          onPress={handlePickAvatar}
+          disabled={avatarLoading}
+        >
+          {avatarLoading ? (
+            <View style={styles.avatar}>
+              <ActivityIndicator color={COLORS.white} />
+            </View>
+          ) : profile?.avatar_url ? (
+            <Image
+              source={{ uri: profile.avatar_url }}
+              style={styles.avatarImage}
+            />
+          ) : (
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>
+                {profile?.prenom?.[0]}{profile?.nom?.[0]}
+              </Text>
+            </View>
+          )}
+          <View style={styles.avatarEditBadge}>
+            <Ionicons name="camera" size={14} color={COLORS.white} />
+          </View>
+        </TouchableOpacity>
+
         <Text style={styles.name}>
           {profile?.prenom} {profile?.nom}
         </Text>
@@ -176,19 +224,42 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
   },
+  avatarContainer: {
+    position: 'relative',
+    marginBottom: 12,
+  },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
     backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+  },
+  avatarImage: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    borderWidth: 3,
+    borderColor: COLORS.primary,
   },
   avatarText: {
     color: COLORS.white,
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
+  },
+  avatarEditBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: COLORS.secondary,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: COLORS.white,
   },
   name: {
     fontSize: 20,
