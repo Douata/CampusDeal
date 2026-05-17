@@ -290,30 +290,34 @@ export default function AnnonceDetailScreen({ route, navigation }) {
           </View>
 
           {/* Infos vendeur */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Publié par</Text>
-            <View style={styles.vendeurCard}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>
-                  {vendeurProfile?.prenom?.[0]}
-                  {vendeurProfile?.nom?.[0]}
-                </Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.vendeurNom}>
-                  {vendeurProfile?.prenom} {vendeurProfile?.nom}
-                </Text>
-                <Text style={styles.vendeurFiliere}>
-                  {vendeurProfile?.filiere}
-                </Text>
-                {vendeurProfile?.telephone && (
-                  <Text style={styles.vendeurPhone}>
-                    📞 +225 {vendeurProfile.telephone}
-                  </Text>
-                )}
-              </View>
-            </View>
-          </View>
+          <View style={styles.vendeurCard}>
+  {vendeurProfile?.avatar_url ? (
+    <Image
+      source={{ uri: vendeurProfile.avatar_url }}
+      style={styles.avatarImage}
+    />
+  ) : (
+    <View style={styles.avatar}>
+      <Text style={styles.avatarText}>
+        {vendeurProfile?.prenom?.[0]}
+        {vendeurProfile?.nom?.[0]}
+      </Text>
+    </View>
+  )}
+  <View style={{ flex: 1 }}>
+    <Text style={styles.vendeurNom}>
+      {vendeurProfile?.prenom} {vendeurProfile?.nom}
+    </Text>
+    <Text style={styles.vendeurFiliere}>
+      {vendeurProfile?.filiere}
+    </Text>
+    {vendeurProfile?.telephone && (
+      <Text style={styles.vendeurPhone}>
+        📞 +225 {vendeurProfile.telephone}
+      </Text>
+    )}
+  </View>
+</View>
 
           <Text style={styles.dateText}>
             🕐 {formatDate(annonce.created_at)}
@@ -531,5 +535,12 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 13,
     fontWeight: 'bold',
+  },
+  avatarImage: {
+  width: 48,
+  height: 48,
+  borderRadius: 24,
+  borderWidth: 2,
+  borderColor: COLORS.primary,
   },
 });
